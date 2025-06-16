@@ -6,13 +6,42 @@ from ..persistence import repositories
 from ..utilities import translator
 from django.contrib.auth import get_user
 
+import requests
+from app.layers.utilities import card
+
 # función que devuelve un listado de cards. Cada card representa una imagen de la API de Pokemon
 def getAllImages():
     # debe ejecutar los siguientes pasos:
     # 1) traer un listado de imágenes crudas desde la API (ver transport.py)
     # 2) convertir cada img. en una card.
     # 3) añadirlas a un nuevo listado que, finalmente, se retornará con todas las card encontradas.
-    pass
+    #pass
+    lista_imagenes=[]
+    lista_card=[]
+    
+    # maximo de lista de imagenes a consultar, por eemplo MAX = 30
+    itemsmaximos=30
+    
+    # punto 1, cargar lista imagenes crudas, segun el maximo soictado (en este caso 30)    
+    for id in range(1,itemsmaximos):
+        peticion=requests.get(config.STUDENTS_REST_API_URL+ str(id))
+        
+        if not peticion.ok:
+            print(f"[services.py]: error al obtener datos para el id: {id}, continua con el siguiente")
+            continue
+
+        raw_data = peticion.json()
+
+        if 'front_default' in raw_data and raw_data['front_default'] != 'Not found.':
+            print(f"[services.py]: Pokémon con id {id} encontrado. se agrega a la lista")
+            lista_imagenes.append(raw_data['front_default'])
+    
+    # Punto 2: convertir IMG a CARD
+    # segun la definicion de objeto CARD en UTILITIES,cargamos los paramentros de la clase
+            aux=card(raw_data['name'],raw_data['height'],raw_data['base_experience'],raw_data['weight'],raw_data['front_default'],raw_data['types'],None,raw_data['id'])
+    
+    # Punto 3:  guarda en lista card
+            lista_card.append(aux)
 
 # función que filtra según el nombre del pokemon.
 def filterByCharacter(name):
