@@ -23,3 +23,17 @@ class Card:
     # Método hashCode.
     def __hash__(self):
         return hash((self.name, self.height, self.weight, self.id))
+    
+    def __getTypePokemon__(self, str_tipo):
+        for cantTipes in range(0,len(self.types)):
+            if str_tipo == self.types[cantTipes]:
+                return True
+        
+        return False
+    
+    def __getNamePokemon__(self, str_nombre):
+        
+        if str_nombre == self.name:
+            return True
+        
+        return False
