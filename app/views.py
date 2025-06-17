@@ -5,6 +5,7 @@ from .layers.services import services
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 
+
 def index_page(request):
     return render(request, 'index.html')
 
@@ -12,6 +13,8 @@ def index_page(request):
 def home(request):
     images = []
     favourite_list = []
+
+    images=services.getAllImages()
 
     return render(request, 'home.html', { 'images': images, 'favourite_list': favourite_list })
 
@@ -24,6 +27,8 @@ def search(request):
         images = []
         favourite_list = []
 
+        images=services.filterByCharacter(name)
+
         return render(request, 'home.html', { 'images': images, 'favourite_list': favourite_list })
     else:
         return redirect('home')
@@ -35,6 +40,8 @@ def filter_by_type(request):
     if type != '':
         images = [] # debe traer un listado filtrado de imágenes, segun si es o contiene ese tipo.
         favourite_list = []
+        
+        images=services.filterByType(type)
 
         return render(request, 'home.html', { 'images': images, 'favourite_list': favourite_list })
     else:
