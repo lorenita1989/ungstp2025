@@ -1,13 +1,15 @@
 # capa de servicio/lógica de negocio
 
+from app.layers.utilities.card import Card
 from ..transport import transport
 from ...config import config
 from ..persistence import repositories
-from ..utilities import translator
+#from ..utilities import translator
+from ..utilities import *
 from django.contrib.auth import get_user
 
 import requests
-from app.layers.utilities import card
+
 
 # función que devuelve un listado de cards. Cada card representa una imagen de la API de Pokemon
 def getAllImages():
@@ -20,7 +22,7 @@ def getAllImages():
     lista_card=[]
     
     # maximo de lista de imagenes a consultar, por eemplo MAX = 30
-    itemsmaximos=30
+    itemsmaximos=5
     
     # punto 1, cargar lista imagenes crudas, segun el maximo soictado (en este caso 30)    
     for id in range(1,itemsmaximos):
@@ -32,16 +34,34 @@ def getAllImages():
 
         raw_data = peticion.json()
 
-        if 'front_default' in raw_data and raw_data['front_default'] != 'Not found.':
-            print(f"[services.py]: Pokémon con id {id} encontrado. se agrega a la lista")
-            lista_imagenes.append(raw_data['front_default'])
+        if 'front_default' in raw_data['sprites'] and raw_data['sprites']['front_default'] != 'Not found.':
+            #print(f"[services.py]: Pokémon con id {id} encontrado. se agrega a la lista")
+            lista_imagenes.append(raw_data['sprites']['front_default'])
     
-    # Punto 2: convertir IMG a CARD
+    # Punto 2: generamos el objeto CARD - con cada Pokemon encontrado
     # segun la definicion de objeto CARD en UTILITIES,cargamos los paramentros de la clase
-            aux=card(raw_data['name'],raw_data['height'],raw_data['base_experience'],raw_data['weight'],raw_data['front_default'],raw_data['types'],None,raw_data['id'])
+            nombre=raw_data['name']
+            altura=int(raw_data['height'])
+            base=int(raw_data['base_experience'])
+            peso=int(raw_data['weight'])
+            imgurl=raw_data['sprites']['front_default']
+            idPokemon=int(raw_data['id'])
+            usuario=None
+            
+            lista_tipos=[]
+            for idTipo in range(0,len(raw_data['types'])):
+                auxTipos=raw_data['types'][idTipo]['type']['name']
+                lista_tipos.append(auxTipos)
+            
+            #CARD_PEKEMON
+            
+            CARD_PEKEMON=Card(nombre,int(altura),int(base),int(peso),imgurl,lista_tipos,usuario,int(idPokemon))
+            
     
     # Punto 3:  guarda en lista card
-            lista_card.append(aux)
+            lista_card.append(CARD_PEKEMON)
+    
+    return lista_card
 
 # función que filtra según el nombre del pokemon.
 def filterByCharacter(name):
@@ -49,7 +69,8 @@ def filterByCharacter(name):
 
     for card in getAllImages():
         # debe verificar si el name está contenido en el nombre de la card, antes de agregarlo al listado de filtered_cards.
-        filtered_cards.append(card)
+        if card.__getNamePokemon__(name):
+            filtered_cards.append(card)
 
     return filtered_cards
 
@@ -59,7 +80,9 @@ def filterByType(type_filter):
 
     for card in getAllImages():
         # debe verificar si la casa de la card coincide con la recibida por parámetro. Si es así, se añade al listado de filtered_cards.
-        filtered_cards.append(card)
+        
+        if card.__getTypePokemon__(type_filter):
+            filtered_cards.append(card)
 
     return filtered_cards
 
